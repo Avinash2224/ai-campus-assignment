@@ -1,20 +1,19 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 export default function Signup() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/api/auth/signup`,
-        { name, email, password }
-      );
+      await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/auth/signup`, { name, email, password });
       alert('Signup successful');
+      navigate('/'); // Redirect to login after signup
     } catch (err) {
       alert(err.response?.data?.message || 'Signup failed');
     }
@@ -46,9 +45,7 @@ export default function Signup() {
           required
         />
         <button type="submit">Sign Up</button>
-        <p>
-          Already have an account? <Link to="/">Login</Link>
-        </p>
+        <p>Already have an account? <Link to="/">Login</Link></p>
       </form>
     </div>
   );
