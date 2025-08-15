@@ -181,13 +181,7 @@ export default function Home() {
             {/* Desktop nav */}
             <div className="hidden md:flex items-center space-x-4">
               <a href="#" className="hover:bg-red-700 px-3 py-2 rounded">Home</a>
-              <a
-                href="#"
-                onClick={() => navigate("/track")}
-                className="hover:bg-red-700 px-3 py-2 rounded cursor-pointer"
-              >
-                Track
-              </a>
+              <a href="#" className="hover:bg-red-700 px-3 py-2 rounded">Track</a>
               <a href="#" className="hover:bg-red-700 px-3 py-2 rounded">Contact</a>
               <button
                 onClick={handleLogout}
