@@ -66,7 +66,7 @@ export default function Signup() {
       setTimeout(() => {
         // navigate('/'); // In a real app, you'd use this
         console.log("Redirecting to login page...");
-        window.location.href = '/login'; // Fallback for demonstration
+        window.location.href = '/'; // Fallback for demonstration
       }, 2000);
 
     } catch (err) {
@@ -103,7 +103,7 @@ export default function Signup() {
                     Already have an account?{' '}
                     {/* In a real app, this would be a Link component */}
                     {/* --- MODIFIED LINE --- */}
-                    <a href="/ogin" className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
+                    <a href="/" className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
                         Login
                     </a>
                 </p>
