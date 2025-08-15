@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import axios from "axios";
 
 export default function Home() {
-  // Navbar menu state (for mobile)
+  // Navbar state for mobile
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -17,7 +17,7 @@ export default function Home() {
   const [sortField, setSortField] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("asc");
 
-  // Modal state for adding and editing products
+  // Modal state
   const [showModal, setShowModal] = useState(false);
   const [modalProduct, setModalProduct] = useState({
     name: "",
@@ -29,18 +29,34 @@ export default function Home() {
   const [isEdit, setIsEdit] = useState(false);
 
   useEffect(() => {
+    // Check if user is authenticated
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/");
+      return;
+    }
+    
     fetchProducts();
     // eslint-disable-next-line
   }, [page, search, category, fragile, sortField, sortOrder]);
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
+    localStorage.removeItem("token");
     navigate("/");
   };
 
   const fetchProducts = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/");
+        return;
+      }
+      
       const res = await axios.get("http://localhost:8080/api/products", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
         params: {
           page,
           limit: 5,
@@ -54,7 +70,12 @@ export default function Home() {
       setProducts(res.data.data);
       setTotalPages(res.data.totalPages);
     } catch (err) {
-      alert("Failed to fetch products");
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        navigate("/");
+      } else {
+        alert("Failed to fetch products");
+      }
     }
   };
 
@@ -67,7 +88,7 @@ export default function Home() {
     }
   };
 
-  const handleAddProduct = () => {
+  const handleAdd = () => {
     setModalProduct({
       name: "",
       category: "",
@@ -79,147 +100,164 @@ export default function Home() {
     setShowModal(true);
   };
 
-  const handleEditProduct = (product) => {
-    setModalProduct({ ...product });
+  const handleEdit = (product) => {
+    setModalProduct(product);
     setIsEdit(true);
     setShowModal(true);
   };
 
-  const handleModalSave = async (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/");
+        return;
+      }
+      
+      const headers = {
+        Authorization: `Bearer ${token}`
+      };
+      
       if (isEdit) {
-        await axios.put(`http://localhost:8080/api/products/${modalProduct._id}`, modalProduct);
+        await axios.put(`http://localhost:8080/api/products/${modalProduct._id}`, modalProduct, { headers });
       } else {
-        await axios.post("http://localhost:8080/api/products", modalProduct);
+        await axios.post("http://localhost:8080/api/products", modalProduct, { headers });
       }
       setShowModal(false);
       fetchProducts();
     } catch (err) {
-      alert(err.response?.data?.message || "Error saving product");
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        navigate("/");
+      } else {
+        alert("Error saving product");
+      }
     }
   };
 
-  const handleDeleteProduct = async (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm("Delete this product?")) return;
     try {
-      await axios.delete(`http://localhost:8080/api/products/${id}`);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/");
+        return;
+      }
+      
+      await axios.delete(`http://localhost:8080/api/products/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       fetchProducts();
-    } catch {
-      alert("Failed to delete product");
+    } catch (err) {
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        navigate("/");
+      } else {
+        alert("Failed to delete product");
+      }
     }
   };
 
   const handleModalClose = () => setShowModal(false);
 
-  // Pagination arrow handling
-  const handlePrevPage = () => {
+  const handlePrev = () => {
     if (page > 1) setPage(page - 1);
   };
-  const handleNextPage = () => {
+
+  const handleNext = () => {
     if (page < totalPages) setPage(page + 1);
   };
 
   return (
-    <div>
+    <div className="bg-gray-50 min-h-screen">
       {/* Navbar */}
-      <nav className="bg-red-600 text-white w-full fixed top-0 left-0 right-0 z-10">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex-shrink-0 font-bold text-xl">MyApp</div>
-            {/* Desktop Menu */}
-            <div className="hidden md:flex space-x-4">
-              <a href="#" className="hover:bg-red-700 px-3 py-2 rounded">
-                Home
+      <nav className="bg-red-600 text-white fixed top-0 left-0 right-0 z-10">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="font-bold text-xl">MyApp</div>
+            {/* Desktop nav */}
+            <div className="hidden md:flex items-center space-x-4">
+              <a href="#" className="hover:bg-red-700 px-3 py-2 rounded">Home</a>
+              <a
+                href="#"
+                onClick={() => navigate("/track")}
+                className="hover:bg-red-700 px-3 py-2 rounded cursor-pointer"
+              >
+                Track
               </a>
-              <a href="#" className="hover:bg-red-700 px-3 py-2 rounded">
-                About
-              </a>
-              <a href="#" className="hover:bg-red-700 px-3 py-2 rounded">
-                Contact
-              </a>
+              <a href="#" className="hover:bg-red-700 px-3 py-2 rounded">Contact</a>
               <button
                 onClick={handleLogout}
-                className="bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded"
+                className="bg-black hover:bg-gray-900 text-white px-3 py-2 rounded"
               >
                 Logout
               </button>
             </div>
-            {/* Mobile menu button */}
+            {/* Mobile nav button */}
             <div className="md:hidden">
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 type="button"
                 className="focus:outline-none"
               >
-                <svg
-                  className="h-6 w-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  xmlns="http://www.w3.org/2000/svg">
                   {isOpen ? (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12" />
                   ) : (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                      d="M4 6h16M4 12h16M4 18h16" />
                   )}
                 </svg>
               </button>
             </div>
           </div>
+          {/* Mobile nav menu */}
+          {isOpen && (
+            <div className="md:hidden px-2 pt-2 pb-3 space-y-1">
+              <a href="#" className="block px-3 py-2 rounded hover:bg-red-700">Home</a>
+              <a
+                href="#"
+                onClick={() => { navigate("/track"); setIsOpen(false); }}
+                className="block px-3 py-2 rounded hover:bg-red-700 cursor-pointer"
+              >
+                Track
+              </a>
+              <a href="#" className="block px-3 py-2 rounded hover:bg-red-700">Contact</a>
+              <button
+                onClick={handleLogout}
+                className="block w-full text-left px-3 py-2 rounded hover:bg-red-700"
+              >
+                Logout
+              </button>
+            </div>
+          )}
         </div>
-        {/* Mobile Menu */}
-        {isOpen && (
-          <div className="md:hidden px-2 pt-2 pb-3 space-y-1">
-            <a href="#" className="block px-3 py-2 rounded hover:bg-red-700">
-              Home
-            </a>
-            <a href="#" className="block px-3 py-2 rounded hover:bg-red-700">
-              About
-            </a>
-            <a href="#" className="block px-3 py-2 rounded hover:bg-red-700">
-              Contact
-            </a>
-            <button
-              onClick={handleLogout}
-              className="block w-full text-left px-3 py-2 rounded hover:bg-red-700"
-            >
-              Logout
-            </button>
-          </div>
-        )}
       </nav>
 
       {/* Main Content */}
-      {/* Add bg-gray-50 (or white) here to ensure visible background for blur effect */}
-      <div className="pt-20 px-4 sm:px-6 lg:px-8 bg-gray-50 min-h-screen">
-        <h1 className="text-black text-2xl font-semibold text-center mb-6">
-          Product Tracking Dashboard
+      <main className="pt-20 px-4 sm:px-6 lg:px-8">
+        <h1 className="text-center text-3xl font-bold mb-6 text-gray-900">
+          Product Dashboard
         </h1>
 
-        {/* Filters & Search */}
-        <div className="flex flex-col sm:flex-row justify-between mb-4 gap-3">
+        {/* Controls */}
+        <div className="flex flex-col sm:flex-row justify-between gap-3 mb-4">
           <button
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
-            onClick={handleAddProduct}
+            onClick={handleAdd}
+            className="bg-black hover:bg-gray-900 text-white px-4 py-2 rounded"
           >
-            ➕ Add Product
+            + Add Product
           </button>
+
           <div className="flex flex-wrap gap-2">
             <input
               type="text"
-              placeholder="Search product..."
+              placeholder="Search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="border px-3 py-2 rounded"
@@ -234,71 +272,63 @@ export default function Home() {
               <option value="Clothing">Clothing</option>
               <option value="Furniture">Furniture</option>
             </select>
-            <label className="flex items-center">
+            <label className="flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={fragile === "true"}
                 onChange={(e) => setFragile(e.target.checked ? "true" : "")}
-                className="mr-2"
+                className="mr-2 cursor-pointer"
               />
-              Fragile
+              <span>Fragile</span>
             </label>
           </div>
         </div>
 
-        {/* Table of products */}
-        <div className="overflow-x-auto bg-white shadow-md rounded mt-4">
-          <table className="min-w-full border">
+        {/* Product table */}
+        <div className="overflow-auto bg-white rounded shadow-lg">
+          <table className="min-w-full border-collapse border border-gray-300">
             <thead className="bg-gray-100">
               <tr>
-                <th className="p-2 text-center align-middle font-bold border-b">S.No.</th>
-                <th className="p-2 text-center align-middle font-bold border-b">Name</th>
-                <th className="p-2 text-center align-middle font-bold border-b">Category</th>
-                <th className="p-2 text-center align-middle font-bold border-b">Fragile</th>
-                <th className="p-2 text-center align-middle font-bold border-b">Quantity</th>
-                <th className="p-2 text-center align-middle font-bold border-b">Cost</th>
-                <th className="p-2 text-center align-middle font-bold border-b">Total Cost</th>
-                <th className="p-2 text-center align-middle font-bold border-b">Actions</th>
+                <th className="border border-gray-300 px-4 py-2">S. No.</th>
+                <th className="border border-gray-300 px-4 py-2 cursor-pointer" onClick={() => handleSort("name")}>Name</th>
+                <th className="border border-gray-300 px-4 py-2 cursor-pointer" onClick={() => handleSort("category")}>Category</th>
+                <th className="border border-gray-300 px-4 py-2">Fragile</th>
+                <th className="border border-gray-300 px-4 py-2 cursor-pointer" onClick={() => handleSort("quantity")}>Quantity</th>
+                <th className="border border-gray-300 px-4 py-2 cursor-pointer" onClick={() => handleSort("cost")}>Cost</th>
+                <th className="border border-gray-300 px-4 py-2 cursor-pointer" onClick={() => handleSort("totalcost")}>Total Cost</th>
+                <th className="border border-gray-300 px-4 py-2">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {products.length > 0 ? (
-                products.map((p, i) => (
-                  <tr key={p._id} className="border-t">
-                    <td className="p-2 text-center align-middle">{(page - 1) * 5 + i + 1}</td>
-                    <td className="p-2 text-center align-middle">{p.name}</td>
-                    <td className="p-2 text-center align-middle">{p.category}</td>
-                    <td className="p-2 text-center align-middle">
-                      {p.fragile ? (
-                        <span className="inline-block text-lg">&#x2705;</span>
-                      ) : (
-                        <span className="inline-block text-lg">&#x274C;</span>
-                      )}
-                    </td>
-                    <td className="p-2 text-center align-middle">{p.quantity}</td>
-                    <td className="p-2 text-center align-middle">{p.cost}</td>
-                    <td className="p-2 text-center align-middle">{p.quantity * p.cost}</td>
-                    <td className="p-2 text-center align-middle">
-                      <div className="flex justify-center gap-2">
-                        <button
-                          className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1 px-3 rounded flex items-center gap-1"
-                          onClick={() => handleEditProduct(p)}
-                        >
-                          <span role="img" aria-label="edit">✏️</span> Edit
-                        </button>
-                        <button
-                          className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-1 px-3 rounded flex items-center gap-1"
-                          onClick={() => handleDeleteProduct(p._id)}
-                        >
-                          <span role="img" aria-label="delete">🗑️</span> Delete
-                        </button>
-                      </div>
+              {products.length ? (
+                products.map((product, i) => (
+                  <tr key={product._id} className="hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-2 text-center">{(page - 1) * 5 + i + 1}</td>
+                    <td className="border border-gray-300 px-4 py-2">{product.name}</td>
+                    <td className="border border-gray-300 px-4 py-2">{product.category}</td>
+                    <td className="border border-gray-300 px-4 py-2 text-center">{product.fragile ? "✅" : "❌"}</td>
+                    <td className="border border-gray-300 px-4 py-2 text-center">{product.quantity}</td>
+                    <td className="border border-gray-300 px-4 py-2 text-center">{product.cost}</td>
+                    <td className="border border-gray-300 px-4 py-2 text-center">{product.quantity * product.cost}</td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className="mr-2 bg-black hover:bg-gray-900 text-white px-3 py-1 rounded"
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(product._id)}
+                        className="bg-black hover:bg-gray-900 text-white px-3 py-1 rounded"
+                      >
+                        🗑️ Delete
+                      </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="text-center p-4">No products found</td>
+                  <td colSpan={8} className="text-center py-4">No Products Found</td>
                 </tr>
               )}
             </tbody>
@@ -306,64 +336,68 @@ export default function Home() {
         </div>
 
         {/* Pagination */}
-        <div className="flex justify-center mt-4 gap-2">
+        <div className="flex justify-center mt-4 space-x-2">
           <button
-            onClick={handlePrevPage}
+            onClick={handlePrev}
             disabled={page === 1}
-            className={`px-3 py-1 rounded ${
-              page === 1 ? "bg-gray-300 text-gray-400 cursor-not-allowed" : "bg-blue-500 text-white"
-            }`}
+            className={`px-3 py-1 rounded ${page === 1 ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-black text-white hover:bg-gray-900"}`}
           >
-            &#8592;
+            &larr;
           </button>
           {Array.from({ length: totalPages }, (_, i) => (
             <button
               key={i}
               onClick={() => setPage(i + 1)}
-              className={`px-3 py-1 rounded font-bold border ${
-                page === i + 1 ? "bg-blue-700 text-white border-2 border-blue-900" : "bg-blue-500 text-white"
-              }`}
+              className={`px-4 py-1 rounded font-bold border ${page === i + 1 ? "bg-black text-white border-black" : "border-gray-300 text-black"}`}
             >
               {i + 1}
             </button>
           ))}
           <button
-            onClick={handleNextPage}
+            onClick={handleNext}
             disabled={page === totalPages}
-            className={`px-3 py-1 rounded ${
-              page === totalPages ? "bg-gray-300 text-gray-400 cursor-not-allowed" : "bg-blue-500 text-white"
-            }`}
+            className={`px-3 py-1 rounded ${page === totalPages ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-black text-white hover:bg-gray-900"}`}
           >
-            &#8594;
+            &rarr;
           </button>
         </div>
-      </div>
+      </main>
 
-      {/* Modal for Add/Edit Product */}
+      {/* Modal */}
       {showModal && (
-        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-50 bg-white/30 backdrop-blur-md">
+        <div className="fixed inset-0 flex items-center justify-center bg-white/30 backdrop-blur-md z-50">
           <form
-            onSubmit={handleModalSave}
-            className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-lg transition-all"
+            onSubmit={handleSave}
+            className="bg-white rounded-3xl shadow-2xl p-10 max-w-lg w-full"
             autoComplete="off"
           >
-            <h2 className="text-2xl font-extrabold text-gray-800 mb-6">{isEdit ? "Edit" : "Add"} Product</h2>
+            <h2 className="text-2xl font-extrabold mb-6 text-gray-900">
+              {isEdit ? "Edit" : "Add"} Product
+            </h2>
+
             <div className="mb-5">
-              <label className="block mb-2 text-gray-700 font-semibold">Name</label>
+              <label className="block text-gray-700 font-semibold mb-2" htmlFor="name">
+                Name
+              </label>
               <input
+                id="name"
                 type="text"
-                className="border border-gray-300 w-full px-4 py-2 rounded-xl focus:outline-none focus:border-blue-400 text-lg transition-all"
+                className="w-full border px-4 py-2 rounded-xl focus:ring-2 focus:ring-black focus:outline-none"
                 value={modalProduct.name}
-                onChange={e => setModalProduct({...modalProduct, name: e.target.value})}
+                onChange={(e) => setModalProduct({ ...modalProduct, name: e.target.value })}
                 required
               />
             </div>
+
             <div className="mb-5">
-              <label className="block mb-2 text-gray-700 font-semibold">Category</label>
+              <label className="block text-gray-700 font-semibold mb-2" htmlFor="category">
+                Category
+              </label>
               <select
-                className="border border-gray-300 w-full px-4 py-2 rounded-xl focus:outline-none focus:border-blue-400 text-lg transition-all"
+                id="category"
+                className="w-full border px-4 py-2 rounded-xl focus:ring-2 focus:ring-black focus:outline-none"
                 value={modalProduct.category}
-                onChange={e => setModalProduct({...modalProduct, category: e.target.value})}
+                onChange={(e) => setModalProduct({ ...modalProduct, category: e.target.value })}
                 required
               >
                 <option value="">Select category</option>
@@ -372,49 +406,61 @@ export default function Home() {
                 <option value="Furniture">Furniture</option>
               </select>
             </div>
-            <div className="mb-5 flex items-center space-x-2">
+
+            <div className="mb-5 flex items-center space-x-3">
               <input
-                type="checkbox"
-                checked={modalProduct.fragile}
-                onChange={e => setModalProduct({...modalProduct, fragile: e.target.checked})}
                 id="fragile"
-                className="form-checkbox h-5 w-5 text-blue-600 accent-blue-600 focus:ring-blue-500"
+                type="checkbox"
+                className="cursor-pointer accent-black"
+                checked={modalProduct.fragile}
+                onChange={(e) => setModalProduct({ ...modalProduct, fragile: e.target.checked })}
               />
-              <label htmlFor="fragile" className="text-gray-700 font-semibold">Fragile</label>
+              <label htmlFor="fragile" className="font-semibold cursor-pointer">
+                Fragile
+              </label>
             </div>
+
             <div className="mb-5">
-              <label className="block mb-2 text-gray-700 font-semibold">Quantity</label>
+              <label className="block text-gray-700 font-semibold mb-2" htmlFor="quantity">
+                Quantity
+              </label>
               <input
+                id="quantity"
                 type="number"
-                className="border border-gray-300 w-full px-4 py-2 rounded-xl focus:outline-none focus:border-blue-400 text-lg transition-all"
-                value={modalProduct.quantity}
                 min="1"
-                onChange={e => setModalProduct({...modalProduct, quantity: e.target.value})}
+                className="w-full border px-4 py-2 rounded-xl focus:ring-2 focus:ring-black focus:outline-none"
+                value={modalProduct.quantity}
+                onChange={(e) => setModalProduct({ ...modalProduct, quantity: Number(e.target.value) })}
                 required
               />
             </div>
+
             <div className="mb-8">
-              <label className="block mb-2 text-gray-700 font-semibold">Cost per item</label>
+              <label className="block text-gray-700 font-semibold mb-2" htmlFor="cost">
+                Cost per item
+              </label>
               <input
+                id="cost"
                 type="number"
-                className="border border-gray-300 w-full px-4 py-2 rounded-xl focus:outline-none focus:border-blue-400 text-lg transition-all"
-                value={modalProduct.cost}
                 min="0"
-                onChange={e => setModalProduct({...modalProduct, cost: e.target.value})}
+                className="w-full border px-4 py-2 rounded-xl focus:ring-2 focus:ring-black focus:outline-none"
+                value={modalProduct.cost}
+                onChange={(e) => setModalProduct({ ...modalProduct, cost: Number(e.target.value) })}
                 required
               />
             </div>
-            <div className="flex justify-end gap-4">
+
+            <div className="flex justify-end space-x-4">
               <button
                 type="button"
-                className="px-6 py-2 rounded-xl bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300 active:bg-gray-400 transition-all"
                 onClick={handleModalClose}
+                className="px-6 py-2 rounded-xl bg-gray-300 hover:bg-gray-400 transition"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-7 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold shadow-sm transition-all"
+                className="px-8 py-2 rounded-xl bg-black text-white hover:bg-gray-900 transition"
               >
                 {isEdit ? "Update" : "Add"}
               </button>
@@ -425,3 +471,4 @@ export default function Home() {
     </div>
   );
 }
+ 

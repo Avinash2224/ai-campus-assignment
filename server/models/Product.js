@@ -6,6 +6,7 @@ const ProductSchema = new mongoose.Schema({
   fragile: { type: Boolean, default: false },
   quantity: { type: Number, default: 1 },
   cost: { type: Number, default: 0 }, // cost per item
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false }, // Temporarily optional for migration
   createdAt: { type: Date, default: Date.now }
 });
 
