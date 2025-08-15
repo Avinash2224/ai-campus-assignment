@@ -1,7 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Remove authentication token or user session
+    localStorage.removeItem("authToken");
+    // Redirect to the login page
+    navigate("/");
+  };
 
   return (
     <div>
@@ -9,11 +18,20 @@ export default function Home() {
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex-shrink-0 font-bold text-xl">MyApp</div>
+
+            {/* Desktop Menu */}
             <div className="hidden md:flex space-x-4">
               <a href="#" className="hover:bg-red-700 px-3 py-2 rounded">Home</a>
               <a href="#" className="hover:bg-red-700 px-3 py-2 rounded">About</a>
               <a href="#" className="hover:bg-red-700 px-3 py-2 rounded">Contact</a>
+              <button
+                onClick={handleLogout}
+                className="hover:bg-red-700 px-3 py-2 rounded"
+              >
+                Logout
+              </button>
             </div>
+
             {/* Mobile menu button */}
             <div className="md:hidden">
               <button
@@ -29,17 +47,11 @@ export default function Home() {
                   stroke="currentColor"
                 >
                   {isOpen ? (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M6 18L18 6M6 6l12 12"
                     />
                   ) : (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M4 6h16M4 12h16M4 18h16"
                     />
                   )}
@@ -55,13 +67,21 @@ export default function Home() {
             <a href="#" className="block px-3 py-2 rounded hover:bg-red-700">Home</a>
             <a href="#" className="block px-3 py-2 rounded hover:bg-red-700">About</a>
             <a href="#" className="block px-3 py-2 rounded hover:bg-red-700">Contact</a>
+            <button
+              onClick={handleLogout}
+              className="block w-full text-left px-3 py-2 rounded hover:bg-red-700"
+            >
+              Logout
+            </button>
           </div>
         )}
       </nav>
 
       {/* Track Shipment text below navbar */}
       <div className="pt-16 w-full flex justify-center items-center py-8">
-        <h1 className="text-black text-2xl font-semibold text-center">Track Shipment</h1>
+        <h1 className="text-black text-2xl font-semibold text-center">
+          Product Tracking Dashboard
+        </h1>
       </div>
     </div>
   );

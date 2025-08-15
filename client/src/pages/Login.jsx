@@ -203,7 +203,7 @@ export default function Login() {
               </div>
             </div>
             <h1 className="mt-8 text-5xl font-bold tracking-tight text-purple-400 drop-shadow-lg">Welcome Back!</h1>
-            <p className="mt-5 text-xl text-gray-400">Log in to access your dashboard and ignite your journey.</p>
+            <p className="mt-5 text-xl text-gray-400"></p>
           </div>
           
           {/* Right Side: Login Form */}
