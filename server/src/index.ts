@@ -86,7 +86,9 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css'
+}));
 
 // Health check
 app.get('/health', (req, res) => {
