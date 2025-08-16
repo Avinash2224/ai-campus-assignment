@@ -1,10 +1,11 @@
+
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import axios from 'axios'
+import { Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { ShoppingCart, Trash2, Plus, Minus } from 'lucide-react'
 import ProtectedRoute from '../../components/ProtectedRoute'
 import { useAuth } from '../../contexts/AuthContext'
 
@@ -28,6 +29,18 @@ export default function Cart() {
 
   useEffect(() => {
     fetchCart()
+  }, [])
+
+  // Refresh cart when page becomes visible (e.g., when navigating back from other pages)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchCart()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [])
 
   const fetchCart = async () => {
@@ -140,6 +153,12 @@ export default function Cart() {
                   className="btn-secondary"
                 >
                   Continue Shopping
+                </button>
+                <button
+                  onClick={fetchCart}
+                  className="btn-secondary"
+                >
+                  Refresh Cart
                 </button>
                 <button
                   onClick={() => router.push('/client/orders')}
@@ -281,3 +300,4 @@ export default function Cart() {
     </ProtectedRoute>
   )
 }
+

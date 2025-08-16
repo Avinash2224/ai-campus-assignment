@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import axios from 'axios'
+import { Eye, Search, ShoppingCart, SortAsc } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { ShoppingCart, Search, Filter, SortAsc, Eye } from 'lucide-react'
 import ProtectedRoute from '../../components/ProtectedRoute'
 import { useAuth } from '../../contexts/AuthContext'
 
@@ -34,6 +34,13 @@ export default function ClientProducts() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [addingToCart, setAddingToCart] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+  const [category, setCategory] = useState('')
+  const [status, setStatus] = useState('')
+  const [inStock, setInStock] = useState<boolean | undefined>(undefined)
+  const [sortBy, setSortBy] = useState('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [cartCount, setCartCount] = useState(0)
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
     limit: 10,
@@ -42,24 +49,36 @@ export default function ClientProducts() {
     hasNext: false,
     hasPrev: false
   })
-  const [search, setSearch] = useState('')
-  const [category, setCategory] = useState('')
-  const [status, setStatus] = useState('')
-  const [inStock, setInStock] = useState<boolean | undefined>(undefined)
-  const [sortBy, setSortBy] = useState('name')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const router = useRouter()
   const { logout } = useAuth()
 
   useEffect(() => {
     fetchProducts()
+    fetchCartCount()
   }, [pagination.page, pagination.limit, search, category, status, inStock, sortBy, sortOrder])
+
+  const fetchCartCount = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) return
+
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/cart`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      const totalItems = (response.data.data || []).reduce((sum: number, item: any) => sum + item.quantity, 0)
+      setCartCount(totalItems)
+    } catch (error) {
+      // Silently fail for cart count
+      console.error('Failed to fetch cart count:', error)
+    }
+  }
 
   const fetchProducts = async () => {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      
+
       if (!token) {
         toast.error('Please login first')
         router.push('/')
@@ -76,7 +95,7 @@ export default function ClientProducts() {
       params.append('sortBy', sortBy)
       params.append('sortOrder', sortOrder)
 
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/products?${params.toString()}`, {
+      const response = await axios.get(`http://localhost:8080/api/products?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -113,6 +132,7 @@ export default function ClientProducts() {
       })
 
       toast.success('Added to cart!')
+      fetchCartCount() // Refresh cart count after successful add
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to add to cart')
     } finally {
@@ -159,7 +179,7 @@ export default function ClientProducts() {
                   className="btn-primary flex items-center space-x-2"
                 >
                   <ShoppingCart size={20} />
-                  <span>View Cart</span>
+                  <span>View Cart ({cartCount})</span>
                 </button>
                 <button
                   onClick={() => router.push('/client/orders')}
@@ -289,12 +309,11 @@ export default function ClientProducts() {
                   <div className="p-4">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h3>
                     <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
-                    
+
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-2xl font-bold text-primary-600">${product.price}</span>
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        product.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`px-2 py-1 text-xs rounded-full ${product.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
                         {product.inStock ? 'In Stock' : 'Out of Stock'}
                       </span>
                     </div>
@@ -308,9 +327,8 @@ export default function ClientProducts() {
                       <button
                         onClick={() => addToCart(product.id)}
                         disabled={!product.inStock || addingToCart === product.id}
-                        className={`flex-1 btn-primary flex items-center justify-center space-x-2 ${
-                          !product.inStock ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                        className={`flex-1 btn-primary flex items-center justify-center space-x-2 ${!product.inStock ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                       >
                         {addingToCart === product.id ? (
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -319,7 +337,7 @@ export default function ClientProducts() {
                         )}
                         <span>{addingToCart === product.id ? 'Adding...' : 'Add to Cart'}</span>
                       </button>
-                      
+
                       <button
                         onClick={() => router.push(`/client/products/${product.id}`)}
                         className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
@@ -344,21 +362,20 @@ export default function ClientProducts() {
                 >
                   Previous
                 </button>
-                
+
                 {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
                   <button
                     key={page}
                     onClick={() => handlePageChange(page)}
-                    className={`px-3 py-2 border rounded-md ${
-                      page === pagination.page
+                    className={`px-3 py-2 border rounded-md ${page === pagination.page
                         ? 'bg-primary-600 text-white border-primary-600'
                         : 'border-gray-300 hover:bg-gray-50'
-                    }`}
+                      }`}
                   >
                     {page}
                   </button>
                 ))}
-                
+
                 <button
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={!pagination.hasNext}

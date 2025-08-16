@@ -36,7 +36,7 @@ router.get('/', [authenticateToken, requireClient], async (req: AuthRequest, res
       updatedAt: item.updatedAt
     }));
 
-    res.json(transformedItems);
+    res.json({ data: transformedItems });
   } catch (error) {
     console.error('Error fetching cart:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -109,7 +109,7 @@ router.post('/', [
       // Update quantity
       existingItem.quantity += quantity;
       await existingItem.save();
-      
+
       const updatedItem = await CartItem.findById(existingItem._id)
         .populate('productId', 'name price imageUrl inStock stockQuantity')
         .lean();
@@ -124,7 +124,7 @@ router.post('/', [
         updatedAt: updatedItem!.updatedAt
       };
 
-      res.json(transformedItem);
+      res.json({ data: transformedItem });
     } else {
       // Add new item
       const newCartItem = await CartItem.create({
@@ -147,10 +147,33 @@ router.post('/', [
         updatedAt: populatedItem!.updatedAt
       };
 
-      res.status(201).json(transformedItem);
+      res.status(201).json({ data: transformedItem });
     }
   } catch (error) {
     console.error('Error adding to cart:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/cart/clear:
+ *   delete:
+ *     summary: Clear user's cart
+ *     tags: [Cart]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Cart cleared
+ */
+router.delete('/clear', [authenticateToken, requireClient], async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    await CartItem.deleteMany({ userId });
+    res.json({ message: 'Cart cleared successfully' });
+  } catch (error) {
+    console.error('Error clearing cart:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -230,7 +253,7 @@ router.put('/:id', [
       updatedAt: updatedItem!.updatedAt
     };
 
-    res.json(transformedItem);
+    res.json({ data: transformedItem });
   } catch (error) {
     console.error('Error updating cart item:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -276,29 +299,6 @@ router.delete('/:id', [authenticateToken, requireClient], async (req: AuthReques
     res.json({ message: 'Item removed from cart' });
   } catch (error) {
     console.error('Error removing cart item:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-/**
- * @swagger
- * /api/cart/clear:
- *   delete:
- *     summary: Clear user's cart
- *     tags: [Cart]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Cart cleared
- */
-router.delete('/clear', [authenticateToken, requireClient], async (req: AuthRequest, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    await CartItem.deleteMany({ userId });
-    res.json({ message: 'Cart cleared successfully' });
-  } catch (error) {
-    console.error('Error clearing cart:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
