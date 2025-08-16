@@ -61,10 +61,10 @@ export default function AdminDashboard() {
       }
 
       const [productsRes, ordersRes] = await Promise.all([
-        axios.get('http://localhost:8080/api/products', {
+        axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/products`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        axios.get('http://localhost:8080/api/admin/orders', {
+        axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/orders`, {
           headers: { Authorization: `Bearer ${token}` }
         })
       ])
@@ -86,7 +86,7 @@ export default function AdminDashboard() {
   const updateProductStatus = async (productId: string, status: string) => {
     try {
       const token = localStorage.getItem('token')
-      await axios.put('http://localhost:8080/api/admin/products/status', {
+      await axios.put(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/products/status`, {
         productId,
         status
       }, {
@@ -103,7 +103,7 @@ export default function AdminDashboard() {
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
       const token = localStorage.getItem('token')
-      await axios.put(`http://localhost:8080/api/admin/orders/${orderId}/status`, {
+      await axios.put(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/orders/${orderId}/status`, {
         status
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -121,7 +121,7 @@ export default function AdminDashboard() {
 
     try {
       const token = localStorage.getItem('token')
-      await axios.delete(`http://localhost:8080/api/products/${productId}`, {
+      await axios.delete(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/products/${productId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
 

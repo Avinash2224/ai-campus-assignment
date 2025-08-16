@@ -59,7 +59,7 @@ export default function ClientOrders() {
         return
       }
 
-      const response = await axios.get('http://localhost:8080/api/orders', {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/orders`, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -81,7 +81,7 @@ export default function ClientOrders() {
 
     try {
       const token = localStorage.getItem('token')
-      await axios.post(`http://localhost:8080/api/orders/${orderId}/cancel`, {}, {
+      await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/orders/${orderId}/cancel`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       })
 

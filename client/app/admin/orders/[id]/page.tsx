@@ -41,7 +41,7 @@ export default function AdminOrderDetail() {
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const router = useRouter()
   const params = useParams()
-  const orderId = params.id as string
+  const orderId = params?.id as string
 
   useEffect(() => {
     if (orderId) {
@@ -60,7 +60,7 @@ export default function AdminOrderDetail() {
         return
       }
 
-      const response = await axios.get(`http://localhost:8080/api/admin/orders/${orderId}`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/orders/${orderId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -84,8 +84,8 @@ export default function AdminOrderDetail() {
     try {
       setUpdatingStatus(true)
       const token = localStorage.getItem('token')
-      
-      await axios.put(`http://localhost:8080/api/admin/orders/${orderId}/status`, {
+
+      await axios.put(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/orders/${orderId}/status`, {
         status: newStatus
       }, {
         headers: { Authorization: `Bearer ${token}` }

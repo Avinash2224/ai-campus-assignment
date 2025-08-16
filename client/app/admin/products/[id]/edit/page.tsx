@@ -31,7 +31,7 @@ export default function EditProduct() {
   const [fetching, setFetching] = useState(true)
   const router = useRouter()
   const params = useParams()
-  const productId = params.id as string
+  const productId = params?.id as string
 
   useEffect(() => {
     fetchProduct()
@@ -46,7 +46,7 @@ export default function EditProduct() {
         return
       }
 
-      const response = await axios.get(`http://localhost:8080/api/products/${productId}`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/products/${productId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -86,7 +86,7 @@ export default function EditProduct() {
         stockQuantity: parseInt(formData.stockQuantity)
       }
 
-      await axios.put(`http://localhost:8080/api/products/${productId}`, productData, {
+      await axios.put(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/products/${productId}`, productData, {
         headers: { Authorization: `Bearer ${token}` }
       })
 

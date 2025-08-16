@@ -28,7 +28,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1)
   const router = useRouter()
   const params = useParams()
-  const productId = params.id as string
+  const productId = params?.id as string
 
   useEffect(() => {
     if (productId) {
@@ -47,7 +47,7 @@ export default function ProductDetail() {
         return
       }
 
-      const response = await axios.get(`http://localhost:8080/api/products/${productId}`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/products/${productId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -73,8 +73,8 @@ export default function ProductDetail() {
     try {
       setAddingToCart(true)
       const token = localStorage.getItem('token')
-      
-      await axios.post('http://localhost:8080/api/cart', {
+
+      await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/cart`, {
         productId: product.id,
         quantity
       }, {

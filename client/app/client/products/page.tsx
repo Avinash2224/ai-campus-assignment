@@ -76,7 +76,7 @@ export default function ClientProducts() {
       params.append('sortBy', sortBy)
       params.append('sortOrder', sortOrder)
 
-      const response = await axios.get(`http://localhost:8080/api/products?${params.toString()}`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/products?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -104,8 +104,8 @@ export default function ClientProducts() {
     try {
       setAddingToCart(productId)
       const token = localStorage.getItem('token')
-      
-      await axios.post('http://localhost:8080/api/cart', {
+
+      await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/cart`, {
         productId,
         quantity: 1
       }, {

@@ -58,8 +58,8 @@ export default function Home() {
 
     try {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register'
-      const response = await axios.post(`http://localhost:8080${endpoint}`, formData)
-      
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}${endpoint}`, formData)
+
       const { token, user: userData } = response.data
       
       // Use auth context to login

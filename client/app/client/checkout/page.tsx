@@ -45,7 +45,7 @@ export default function Checkout() {
         return
       }
 
-      const response = await axios.get('http://localhost:8080/api/cart', {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/cart`, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -79,7 +79,7 @@ export default function Checkout() {
         return
       }
 
-      await axios.post('http://localhost:8080/api/orders', formData, {
+      await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/orders`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       })
 

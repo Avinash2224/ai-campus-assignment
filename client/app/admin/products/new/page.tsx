@@ -36,7 +36,7 @@ export default function AddProduct() {
         stockQuantity: parseInt(formData.stockQuantity)
       }
 
-      await axios.post('http://localhost:8080/api/products', productData, {
+      await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/products`, productData, {
         headers: { Authorization: `Bearer ${token}` }
       })
 

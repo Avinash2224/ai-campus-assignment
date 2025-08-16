@@ -41,7 +41,7 @@ export default function Cart() {
         return
       }
 
-      const response = await axios.get('http://localhost:8080/api/cart', {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/cart`, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -64,8 +64,8 @@ export default function Cart() {
     try {
       setUpdatingQuantity(itemId)
       const token = localStorage.getItem('token')
-      
-      await axios.put(`http://localhost:8080/api/cart/${itemId}`, {
+
+      await axios.put(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/cart/${itemId}`, {
         quantity: newQuantity
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -83,8 +83,8 @@ export default function Cart() {
   const removeItem = async (itemId: string) => {
     try {
       const token = localStorage.getItem('token')
-      
-      await axios.delete(`http://localhost:8080/api/cart/${itemId}`, {
+
+      await axios.delete(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/cart/${itemId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -100,8 +100,8 @@ export default function Cart() {
 
     try {
       const token = localStorage.getItem('token')
-      
-      await axios.delete('http://localhost:8080/api/cart', {
+
+      await axios.delete(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/cart`, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
