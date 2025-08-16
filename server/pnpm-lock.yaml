@@ -38,6 +38,9 @@ importers:
       multer:
         specifier: ^1.4.5-lts.1
         version: 1.4.5-lts.2
+      shipsy-ecommerce-server:
+        specifier: 'link:'
+        version: 'link:'
       swagger-jsdoc:
         specifier: ^6.2.8
         version: 6.2.8(openapi-types@12.1.3)
