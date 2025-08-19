@@ -35,6 +35,7 @@ export default function ClientProducts() {
   const [loading, setLoading] = useState(true)
   const [addingToCart, setAddingToCart] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState('')
   const [category, setCategory] = useState('')
   const [status, setStatus] = useState('')
   const [inStock, setInStock] = useState<boolean | undefined>(undefined)
@@ -145,7 +146,8 @@ export default function ClientProducts() {
   }
 
   const clearFilters = () => {
-    setSearch('')
+  setSearch('')
+  setSearchInput('')
     setCategory('')
     setStatus('')
     setInStock(undefined)
@@ -209,8 +211,14 @@ export default function ClientProducts() {
                   <input
                     type="text"
                     placeholder="Search products..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setSearch(searchInput)
+                        setPagination(prev => ({ ...prev, page: 1 }))
+                      }
+                    }}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
