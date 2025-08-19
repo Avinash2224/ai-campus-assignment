@@ -34,8 +34,8 @@ const swaggerOptions = {
       version: '1.0.0',
       description: 'A comprehensive e-commerce platform API with admin and client sides',
       contact: {
-        name: 'Shipsy Assignment',
-        email: 'assignment@shipsy.com'
+        name: 'Avinash Alok (2022BCS0021)',
+        email: 'avinash22bcs21@iiitkottayam.ac.in'
       }
     },
     servers: [
